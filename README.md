@@ -24,5 +24,3 @@ uvicorn app:app --reload
 权重文件过大，难以上传至github，完整版请见如下链接：
 
 https://disk.pku.edu.cn/link/AA65D7F77BA78541AA836DCDBD386B77BC
-文件夹名：Final Project-copy
-有效期限：永久有效
