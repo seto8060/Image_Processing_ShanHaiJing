@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>山海经 · 穿越校准相机</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Helvetica Neue", Arial, sans-serif; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      position: relative;
+      overflow: hidden;
+      background: black;
+      color: #eaeaea;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .background {
+      position: fixed;
+      inset: 0;
+      background-image: url("assets/background.png"); 
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.6);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,0.7) 100%);
+      z-index: 1;
+      pointer-events: none;
+
+    }
+    .story {
+      font-size: 25px;
+      line-height: 1.8;
+      color: #e6e4dc;
+      margin-bottom: 1em;
+      font-family: "STSong", "Noto Serif SC", serif;
+      letter-spacing: 0.5px;
+    }
+
+    .story.center {
+      text-align: center;
+    }
+
+    .story-image {
+      margin: 32px 0 36px 0;
+      text-align: center;
+    }
+
+    .story-image img {
+      max-width: 60%;
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      opacity: 0.95;
+    }
+
+    .story-image-1 {
+      text-align: center;
+    }
+    
+
+    .story-image-1 img {
+      max-height: 500px;
+      height: auto;
+    }
+
+    .ritual-questions {
+      margin: 28px 0 36px 0;
+      padding: 20px 24px;
+      border-left: 2px solid #444;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .ritual-question + .ritual-question {
+      margin-top: 20px;
+    }
+
+    .question-text {
+      color: #ccc;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    .options label {
+      display: block;
+      margin-bottom: 8px;
+      cursor: pointer;
+      color: #aaa;
+      transition: color 0.2s ease;
+    }
+
+    .options input {
+      margin-right: 8px;
+    }
+
+    .options label:hover {
+      color: #eee;
+    }
+
+    .camera-input {
+      margin: 24px 0 28px 0;
+      text-align: center;
+    }
+
+    .camera-button {
+      display: inline-block;
+      padding: 8px 20px;
+      border: 1px solid #555;
+      color: #ccc;
+      cursor: pointer;
+      letter-spacing: 0.12em;
+      transition: all 0.2s ease;
+    }
+
+    .camera-button:hover {
+      color: #fff;
+      border-color: #888;
+    }
+
+    #inputPreview {
+      display: none;
+      text-align: center;
+      margin-top: 16px;
+      max-width: 600px;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    .panel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 960px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 28px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 40px rgba(0,0,0,0.8);
+      -ms-overflow-style: none;       /* IE / Edge */
+      scrollbar-width: none;          /* Firefox */
+    }
+    .panel::-webkit-scrollbar {
+        display: none;                  /* Chrome / Safari */
+        
+    }
+
+    .panel h1 { font-size: 35px; text-align: center; margin-bottom: 20px; letter-spacing: 2px; }
+    .section { margin-bottom: 20px; }
+    .section label { display: block; margin-bottom: 8px; opacity: 0.8; }
+    .options label { display: block; margin-bottom: 6px; cursor: pointer; }
+
+    .hidden {
+      display: none;
+    }
+
+    .ritual-submit {
+      margin-top: 20px;
+      padding: 8px 20px;
+      background: transparent;
+      color: #ccc;
+      border: 1px solid #555;
+      cursor: pointer;
+      letter-spacing: 0.1em;
+    }
+
+    .ritual-submit:hover {
+      color: #fff;
+      border-color: #888;
+    }
+    input[type="file"] { width: 100%; color: #ccc; }
+
+    .line {
+      opacity: 0;
+      transition: opacity 2.5s ease;
+    }
+
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #111;
+      border: 1px solid #666;
+      color: #fff;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+    button:hover { background: #222; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .preview { margin-top: 20px; text-align: center; display: none; }
+    .preview video { width: 70%; height: auto; border: 1px solid rgba(255,255,255,0.2); }
+
+
+    .camera-button {
+      margin-top: 14px;
+      padding: 8px 20px;
+      background: transparent;
+      color: #ccc;
+      border: 1px solid #555;
+      cursor: pointer;
+      letter-spacing: 0.12em;
+      transition: all 0.2s ease;
+    }
+    .camera-button:hover { color:#fff; border-color:#888; }
+    .camera-button:disabled { opacity: 0.7; cursor: default; }
+
+    .input-preview{
+      max-width: 280px;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      margin: 0 auto;
+      display: block;
+    }
+
+    .hidden { display: none; }
+
+    .line {
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    .hint { margin-top: 10px; font-size: 12px; opacity: 0.75; line-height: 1.4; }
+  </style>
+</head>
+
+<body>
+  <div class="background"></div>
+  <div class="vignette"></div>
+
+  <div class="panel">
+    <h1>山海奇缘·序章</h1>
+
+    <div class="section">
+      <p class="story">
+        你是一名对志怪异闻情有独钟的大学生。课余时间，你最常做的事不是刷短视频，而是翻读《山海经》这类古籍。那些关于异兽、异境与荒远世界的记载，你早已熟稔于心，甚至能在合上书页后，凭记忆勾勒出它们的轮廓。对你来说，它们并不只是传说，更像是被遗忘的另一种可能。
+      </p>
+
+      <p class="story">
+        某天傍晚，你在宿舍楼下收到了一份没有署名的快递。包裹不大，却出奇地沉，拿在手里，重量与体积并不相称。拆开后，里面静静躺着一台造型古怪的相机。
+      </p>
+
+      <div class="story-image">
+        <img src="assets/camera.png" alt="那台刻有异兽纹样的相机">
+      </div>
+
+      <p class="story">
+        相机看起来并不崭新，金属外壳带着细微的磨损痕迹，像是被反复使用过。更引人注意的是，机身上刻着几种你在《山海经》中见过的异兽纹样——线条简练，却并非随意装饰，更像某种被刻意留下的标记。你一时间想不起在哪个版本中见过它们，却又无比确定：它们不属于现代设计。
+      </p>
+
+      <p class="story">出于好奇，你按下了电源键。</p>
+
+      <p class="story">
+        相机启动得很慢，屏幕亮起时并没有出现你熟悉的取景画面，而是跳出了一组问题。它们的措辞简短，却让人摸不着头绪，像是在确认你的身份，又像是在进行某种判定。你无法权衡利弊，只能凭直觉作答：
+      </p>
+
+      <div class="ritual-questions" id="ritualForm">
+        <div class="ritual-question">
+          <p class="question-text">你会更容易留下：</p>
+          <div class="options">
+            <label><input type="radio" name="q1" value="thing">一件其实用不太上的小东西</label>
+            <label><input type="radio" name="q1" value="chat">一段已经没什么联系的聊天记录</label>
+          </div>
+        </div>
+      
+        <div class="ritual-question">
+          <p class="question-text">如果明天所有安排都被取消，你的第一反应是：</p>
+          <div class="options">
+            <label><input type="radio" name="q2" value="relief">松一口气</label>
+            <label><input type="radio" name="q2" value="uneasy">有点不安</label>
+          </div>
+        </div>
+      
+        <div class="ritual-question">
+          <p class="question-text">当别人误解你时，你更常：</p>
+          <div class="options">
+            <label><input type="radio" name="q3" value="letitgo">懒得解释，随它去</label>
+            <label><input type="radio" name="q3" value="clarify">会忍不住想把事情说清楚</label>
+          </div>
+        </div>
+      
+        <div class="ritual-question">
+          <p class="question-text">你更相信：</p>
+          <div class="options">
+            <label><input type="radio" name="q4" value="destiny">被书写好的因果</label>
+            <label><input type="radio" name="q4" value="choice">临时生成的选择</label>
+          </div>
+        </div>
+      
+        <button class="ritual-submit" onclick="submitRitual()">确认</button>
+      </div>
+
+
+      <div class="ritual-result hidden" id="ritualResult">
+
+        <p class="story line">
+          当最后一个问题结束时，屏幕短暂地暗了下去。几秒钟的黑屏之后，一个异兽的头像缓缓浮现。
+        </p>
+
+        <div class="story-image-1 line">
+          <img id="monsterImg" src="assets/monster_image/Lei.jpg" alt="那只异兽的头像">
+        </div>
+
+        <p class="story line">
+          你立刻认出了它的名字，却怎么也想不明白，它为何会与你对应。那种感觉既陌生，又隐约带着一种被点名的错觉。还没等你细想，相机再次亮起，一行简短的提示出现在屏幕中央：<br>
+        </p>
+
+        <p class="story center line">
+          <strong>“请在光照良好的地方，拍摄一张完整的人像。”</strong>
+        </p>
+
+        <p class="story line">
+          你并不知道这一步的意义，也无法确定接下来会发生什么。但某种难以言说的直觉，让你没有关掉相机。你照着提示站好，调整位置，按下了快门。
+        </p>
+
+        <div class="camera-input line">
+          <img id="inputPreview" class="input-preview" alt="你刚刚拍下的照片" style="display:none;" />
+          <input type="file" id="photoInput" accept="image/*" hidden>
+          <button id="startBtn" class="camera-button">上传照片</button>
+        </div>
+        
+        <div id="afterUpload" class="hidden">
+          <p class="story line">快门声响起的那一刻，你看到的，已经不再只是照片。</p>
+          <p class="story line">那是一段故事的开端……</p>
+        </div>
+        
+        <div class="preview hidden" id="preview">
+          
+          <video id="resultVideo" style="display:none;" controls autoplay loop muted playsinline></video>
+          <img id="resultImage" style="display:none; width:100%; max-height:600px; object-fit:contain;" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="c" style="display:none;"></canvas>
+
+  <script>
+    const input = document.getElementById("photoInput");
+    const startBtn = document.getElementById("startBtn");
+    const afterUpload = document.getElementById("afterUpload");
+    const preview = document.getElementById("preview");
+    const videoEl = document.getElementById("resultVideo");
+    const resultImage = document.getElementById("resultImage");
+    const inputPreview = document.getElementById("inputPreview");
+
+    const BASE_TRAITS = { order: 0, chaos: 0, light: 0, shadow: 0};
+    const answerToTraits = {
+      q1: {
+        thing:   { order: 2, light: 1 },
+        chat: { chaos: 2, shadow: 2 }
+      },
+      q2: {
+        relief:   { order: 1 },
+        uneasy: { chaos: 1 }
+      },
+      q3: {
+        letitgo:  { shadow: 2 },
+        clarify:  { light: 2 }
+      },
+      q4: {
+        destiny:  { order: 1, shadow: 2 },
+        choice:    { chaos: 1, light: 1 }
+      }
+    };
+    const beasts = [
+    {
+      id: "lei",
+      name: "鸓",
+      img: "assets/monster_image/Lei.jpg",
+      traits: { order: 3, shadow: 3 }
+    },
+    {
+      id: "gu",
+      name: "鼓",
+      img: "assets/monster_image/Gu.png",
+      traits: { chaos: 3, light: 3 }
+    },
+    {
+      id: "ranyiyu",
+      name: "冉遗鱼",
+      img: "assets/monster_image/Ran.png",
+      traits: { order: 3, light: 3}
+    },
+    {
+      id: "bibi",
+      name: "獙獙",
+      img: "assets/monster_image/Bibi.png",
+      traits: { chaos: 3, shadow: 3 }
+    }
+  ];
+
+
+    let previewUrl = null;
+    let lastBlobUrl = null;
+    let ritualAnswers = null;
+    let matchedBeast = null;
+  
+    let stage = "pick";
+
+    startBtn.addEventListener("click", async () => {
+      if (stage === "pick") {
+        input.click();
+        return;
+      }
+
+      if (stage !== "confirm") return;
+
+      const file = input.files[0];
+      if (!file) {
+        alert("请先上传一张照片");
+        stage = "pick";
+        startBtn.textContent = "上传照片";
+        return;
+      }
+
+      stage = "running";
+      startBtn.disabled = true;
+      startBtn.textContent = "相机的魔法开始显现……";
+
+      afterUpload.classList.remove("hidden");
+      const lines = afterUpload.querySelectorAll(".line");
+      lines.forEach(l => (l.style.opacity = 0));
+      lines.forEach((line, i) => {
+        setTimeout(() => {
+          line.style.opacity = 1;
+          line.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, i * 900);
+      });
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("beast_id", matchedBeast.id);
+
+      try {
+        const resp = await fetch("http://127.0.0.1:8000/generate_image", {
+          method: "POST",
+          body: formData
+        });
+
+        resultImage.src =
+          "http://127.0.0.1:8000/get_image/result.png?" + Date.now();
+
+        videoEl.src =
+          "http://127.0.0.1:8000/output/out.webm?" + Date.now();
+        videoEl.style.display = "block";
+
+        preview.classList.remove("hidden");
+        preview.style.display = "block";
+        preview.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        stage = "other";
+        startBtn.disabled = false;
+        startBtn.textContent = "你来到了另一个世界……";
+
+      } catch (err) {
+        console.error("生成失败：", err);
+        alert("生成失败，请确认后端正在运行");
+        stage = "other";
+        startBtn.disabled = false;
+        startBtn.textContent = "你来到了另一个世界……";
+      }
+    });
+
+
+    input.addEventListener("change", () => {
+      const file = input.files[0];
+      if (!file) return;
+
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = URL.createObjectURL(file);
+
+      // 选完后：按钮上方显示原图预览
+      inputPreview.src = previewUrl;
+      inputPreview.style.display = "block";
+
+      // 进入确认阶段
+      stage = "confirm";
+      startBtn.textContent = "确认";
+
+      // 可选：对齐视线
+      inputPreview.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    function computeTraits(answers) {
+      const traits = { ...BASE_TRAITS };
+
+      for (const q in answers) {
+        const choice = answers[q];
+        const delta = answerToTraits[q]?.[choice];
+        if (!delta) continue;
+
+        for (const k in delta) {
+          traits[k] += delta[k];
+        }
+      }
+      return traits;
+    }
+    
+    function scoreBeast(userTraits, beast) {
+      let score = 0;
+      for (const k in beast.traits) {
+        score += Math.min(userTraits[k] || 0, beast.traits[k]);
+      }
+      return score;
+    }
+
+    function matchBeast(answers) {
+      const userTraits = computeTraits(answers);
+      console.log(userTraits);
+
+      let best = null;
+      let bestScore = -Infinity;
+
+      for (const beast of beasts) {
+        const s = scoreBeast(userTraits, beast);
+        if (s > bestScore) {
+          bestScore = s;
+          best = beast;
+        }
+      }
+      return best;
+    }
+    function submitRitual() {
+      const answers = {
+        q1: document.querySelector('input[name="q1"]:checked')?.value,
+        q2: document.querySelector('input[name="q2"]:checked')?.value,
+        q3: document.querySelector('input[name="q3"]:checked')?.value,
+        q4: document.querySelector('input[name="q4"]:checked')?.value,
+      };
+
+      if (!answers.q1 || !answers.q2 || !answers.q3 || !answers.q4) {
+        alert("相机似乎还在等待你的回应。");
+        return;
+      }
+      console.log(answers);
+      const beast = matchBeast(answers);
+      ritualAnswers = answers;
+      matchedBeast = beast;
+
+      document.getElementById("monsterImg").src = beast.img;
+      document.getElementById("monsterImg").alt = beast.name;
+      console.log(beast);
+
+      const result = document.getElementById("ritualResult");
+      const lines = result.querySelectorAll(".line");
+
+      result.classList.remove("hidden");
+
+      lines.forEach((line, i) => {
+        setTimeout(() => {
+          line.style.opacity = 1;
+          line.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        }, i * 2500);
+      });
+
+      result.scrollIntoView({ behavior: "smooth" });
+    }
+  </script>  
+</body>
+</html>
