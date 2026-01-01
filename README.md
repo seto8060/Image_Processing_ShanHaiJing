@@ -20,3 +20,9 @@ uvicorn app:app --reload
 直接使用浏览器打开 index.html 文件即可开始交互。
 
 注：视频生成过程可能需要一定时间，请耐心等待。
+
+权重文件过大，难以上传至github，完整版请见如下链接：
+
+https://disk.pku.edu.cn/link/AA65D7F77BA78541AA836DCDBD386B77BC
+文件夹名：Final Project-copy
+有效期限：永久有效
